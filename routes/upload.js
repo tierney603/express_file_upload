@@ -1,0 +1,51 @@
+var express = require("express");
+var router = express.Router();
+const upload = require("../utils/upload");
+
+// 数据库集合配置
+const { Schema, model } = require("mongoose");
+let avatarSchema = new Schema({
+  createTime: Date,
+  url: String,
+});
+
+// 将模型关联
+const avatarModel = model("avatarModel", avatarSchema, "test");
+
+// 上传图片接口
+router.post("/avatar", (req, res) => {
+  upload(req, res)
+    .then(async (imgsrc) => {
+      // 上传成功 存储文件路径 到数据库中
+      const data = await avatarModel.create({
+        url: imgsrc,
+        createTime: new Date(),
+      });
+      console.log(data);
+      res.send({
+        code: "ok",
+        message: "上传成功",
+        data: {
+          url: imgsrc,
+        },
+      });
+    })
+    .catch((err) => {
+        console.log(err)
+      formatErrorMessage(res, err.error);
+    });
+});
+
+// 格式化错误信息
+function formatErrorMessage(res, message) {
+  res.status(500).send({
+    code: "error",
+    message: message || "",
+  });
+}
+
+router.post('/test', function(req, res) {
+    console.log(req.files.files.name); // the uploaded file object
+  });
+
+module.exports = router;
